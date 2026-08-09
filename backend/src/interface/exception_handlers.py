@@ -5,6 +5,7 @@ from src.entities.exceptions import (
     InactiveUserError,
     InkFigError,
     InvalidCredentialsError,
+    SignupVerificationError,
     UnauthorizedError,
     UserAlreadyExistsError,
     WorkNotFoundError,
@@ -46,6 +47,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=401,
             content={"error": {"code": exc.code, "message": exc.message}},
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    @app.exception_handler(SignupVerificationError)
+    async def signup_verification_handler(_: Request, exc: SignupVerificationError) -> JSONResponse:
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"code": exc.code, "message": exc.message}},
         )
 
     @app.exception_handler(InkFigError)

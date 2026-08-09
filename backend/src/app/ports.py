@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from src.entities.auth import RegisterUserRequest, UserRead
+from datetime import datetime
+
+from src.entities.auth import RegisterUserRequest, SignupVerificationRead, UserCreate, UserRead
 from src.entities.work import WorkCreate, WorkRead, WorkStatus
 
 
@@ -41,7 +43,27 @@ class UserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def create(self, payload: RegisterUserRequest, password_hash: str) -> UserRead:
+    async def create(self, payload: UserCreate, password_hash: str) -> UserRead:
+        raise NotImplementedError
+
+
+class SignupVerificationRepository(ABC):
+    @abstractmethod
+    async def upsert_request(
+        self,
+        payload: RegisterUserRequest,
+        password_hash: str,
+        code_hash: str,
+        expires_at: datetime,
+    ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def get_valid_request(self, email: str, now: datetime) -> SignupVerificationRead | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def mark_consumed(self, verification_id: UUID) -> None:
         raise NotImplementedError
 
 
@@ -52,6 +74,28 @@ class PasswordHasher(ABC):
 
     @abstractmethod
     def verify_password(self, password: str, password_hash: str) -> bool:
+        raise NotImplementedError
+
+
+class VerificationCodeHasher(ABC):
+    @abstractmethod
+    def hash_code(self, email: str, code: str) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    def verify_code(self, email: str, code: str, code_hash: str) -> bool:
+        raise NotImplementedError
+
+
+class VerificationCodeGenerator(ABC):
+    @abstractmethod
+    def generate_code(self) -> str:
+        raise NotImplementedError
+
+
+class EmailSender(ABC):
+    @abstractmethod
+    async def send_signup_verification_code(self, email: str, code: str) -> None:
         raise NotImplementedError
 
 

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.ports import UserRepository
-from src.entities.auth import RegisterUserRequest, UserRead
+from src.entities.auth import UserCreate, UserRead
 from src.entities.exceptions import UserAlreadyExistsError
 from src.infrastructure.models.user import UserModel
 
@@ -31,7 +31,7 @@ class SqlAlchemyUserRepository(UserRepository):
         )
         return result.scalar_one_or_none()
 
-    async def create(self, payload: RegisterUserRequest, password_hash: str) -> UserRead:
+    async def create(self, payload: UserCreate, password_hash: str) -> UserRead:
         user = UserModel(
             full_name=payload.full_name,
             email=str(payload.email).lower(),

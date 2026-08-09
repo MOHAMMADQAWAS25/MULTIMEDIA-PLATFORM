@@ -28,3 +28,7 @@ class InactiveUserError(InkFigError):
 
 class UnauthorizedError(InkFigError):
     code = "unauthorized"
+
+
+class SignupVerificationError(InkFigError):
+    code = "signup_verification_failed"

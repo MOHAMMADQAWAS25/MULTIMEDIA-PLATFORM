@@ -39,6 +39,21 @@ class RegisterUserRequest(BaseModel):
             raise ValueError("Password must contain at least one number.")
         return self
 
+    def to_user_create(self) -> "UserCreate":
+        return UserCreate(
+            full_name=self.full_name,
+            email=self.email,
+            department=self.department,
+            major=self.major,
+        )
+
+
+class UserCreate(BaseModel):
+    full_name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    department: str | None = Field(default=None, max_length=120)
+    major: str | None = Field(default=None, max_length=120)
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -60,6 +75,39 @@ class UserRead(BaseModel):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
+
+
+class SignupStarted(BaseModel):
+    email: EmailStr
+    expires_at: datetime
+    message: str
+
+
+class VerifySignupRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class SignupVerificationRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    full_name: str
+    email: EmailStr
+    password_hash: str
+    department: str | None
+    major: str | None
+    code_hash: str
+    expires_at: datetime
+    consumed_at: datetime | None
+
+    def to_user_create(self) -> UserCreate:
+        return UserCreate(
+            full_name=self.full_name,
+            email=self.email,
+            department=self.department,
+            major=self.major,
+        )
 
 
 class AuthToken(BaseModel):

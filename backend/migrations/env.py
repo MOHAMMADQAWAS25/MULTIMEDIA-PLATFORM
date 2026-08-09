@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.infrastructure.config import settings
 from src.infrastructure.database import Base, get_engine_connect_args
+from src.infrastructure.models import signup_verification  # noqa: F401
 from src.infrastructure.models import user  # noqa: F401
 
 config = context.config

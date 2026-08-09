@@ -1,11 +1,14 @@
+import hmac
+import secrets
 from datetime import UTC, datetime, timedelta
+from hashlib import sha256
 from uuid import UUID
 
 import jwt
 import bcrypt
 from jwt import InvalidTokenError
 
-from src.app.ports import PasswordHasher, TokenIssuer
+from src.app.ports import PasswordHasher, TokenIssuer, VerificationCodeGenerator, VerificationCodeHasher
 from src.entities.exceptions import UnauthorizedError
 from src.infrastructure.config import settings
 
@@ -17,6 +20,21 @@ class BcryptPasswordHasher(PasswordHasher):
 
     def verify_password(self, password: str, password_hash: str) -> bool:
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+
+
+class HmacVerificationCodeHasher(VerificationCodeHasher):
+    def hash_code(self, email: str, code: str) -> str:
+        message = f"{email.lower()}:{code}".encode("utf-8")
+        return hmac.new(settings.signup_code_secret.encode("utf-8"), message, sha256).hexdigest()
+
+    def verify_code(self, email: str, code: str, code_hash: str) -> bool:
+        expected = self.hash_code(email, code)
+        return hmac.compare_digest(expected, code_hash)
+
+
+class SixDigitVerificationCodeGenerator(VerificationCodeGenerator):
+    def generate_code(self) -> str:
+        return f"{secrets.randbelow(1_000_000):06d}"
 
 
 class JwtTokenIssuer(TokenIssuer):
