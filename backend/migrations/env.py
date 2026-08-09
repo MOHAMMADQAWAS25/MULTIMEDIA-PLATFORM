@@ -6,7 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.infrastructure.config import settings
-from src.infrastructure.database import Base
+from src.infrastructure.database import Base, get_engine_connect_args
 from src.infrastructure.models import user  # noqa: F401
 
 config = context.config
@@ -41,6 +41,7 @@ async def run_migrations_online() -> None:
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
+        connect_args=get_engine_connect_args(settings.database_url),
         poolclass=pool.NullPool,
     )
 
