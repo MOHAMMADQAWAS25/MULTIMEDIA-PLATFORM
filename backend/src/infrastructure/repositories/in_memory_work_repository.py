@@ -9,16 +9,16 @@ class InMemoryWorkRepository(WorkRepository):
     def __init__(self) -> None:
         self._works: dict[UUID, WorkRead] = {}
 
-    def list_public(self) -> list[WorkRead]:
+    async def list_public(self) -> list[WorkRead]:
         return [work for work in self._works.values() if work.status == WorkStatus.APPROVED]
 
-    def list_pending(self) -> list[WorkRead]:
+    async def list_pending(self) -> list[WorkRead]:
         return [work for work in self._works.values() if work.status == WorkStatus.PENDING]
 
-    def get(self, work_id: UUID) -> WorkRead | None:
+    async def get(self, work_id: UUID) -> WorkRead | None:
         return self._works.get(work_id)
 
-    def create(self, payload: WorkCreate) -> WorkRead:
+    async def create(self, payload: WorkCreate) -> WorkRead:
         now = datetime.now(UTC)
         work = WorkRead(
             id=uuid4(),
@@ -37,7 +37,7 @@ class InMemoryWorkRepository(WorkRepository):
         self._works[work.id] = work
         return work
 
-    def update_status(self, work_id: UUID, status: WorkStatus) -> WorkRead | None:
+    async def update_status(self, work_id: UUID, status: WorkStatus) -> WorkRead | None:
         work = self._works.get(work_id)
         if work is None:
             return None
