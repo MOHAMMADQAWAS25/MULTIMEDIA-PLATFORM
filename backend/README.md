@@ -12,6 +12,8 @@ pip install -e ".[dev]"
 
 ## Run
 
+Create a local `.env` from `.env.example` and fill it with your Supabase values. Do not commit `.env`.
+
 ```powershell
 uvicorn src.main:app --reload
 ```
