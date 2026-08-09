@@ -27,6 +27,13 @@ pytest
 mypy src
 ```
 
+## Migrations
+
+```powershell
+alembic upgrade head
+alembic downgrade -1
+```
+
 ## Structure
 
 - `src/entities`: DTOs, enums, validation, domain exceptions
