@@ -4,6 +4,16 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
+def is_allowed_hebron_email(email: str) -> bool:
+    normalized = email.lower()
+    local_part, _, domain = normalized.partition("@")
+    if domain == "students.hebron.edu":
+        return local_part.isdecimal()
+    if domain == "hebron.edu":
+        return bool(local_part)
+    return False
+
+
 class RegisterUserRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
     email: EmailStr
@@ -14,6 +24,11 @@ class RegisterUserRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_signup_password(self) -> "RegisterUserRequest":
+        if not is_allowed_hebron_email(str(self.email)):
+            raise ValueError(
+                "Email must be a Hebron University email: "
+                "[studentnumber]@students.hebron.edu or [name]@hebron.edu."
+            )
         if self.password != self.confirm_password:
             raise ValueError("Password confirmation does not match.")
         if not any(character.islower() for character in self.password):

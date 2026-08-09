@@ -2,10 +2,11 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
+from pydantic import ValidationError
 
 from src.app.auth_service import AuthService
 from src.app.ports import PasswordHasher, TokenIssuer, UserRepository
-from src.entities.auth import LoginRequest, RegisterUserRequest, UserRead
+from src.entities.auth import LoginRequest, RegisterUserRequest, UserRead, is_allowed_hebron_email
 from src.entities.exceptions import InvalidCredentialsError, UserAlreadyExistsError
 
 
@@ -67,16 +68,18 @@ async def test_register_and_login_user() -> None:
     user = await service.register_user(
         RegisterUserRequest(
             full_name="Mohammad Qawas",
-            email="Mohammad@example.com",
+            email="202012345@STUDENTS.HEBRON.EDU",
             password="StrongPass123",
             confirm_password="StrongPass123",
             department="Information Technology",
             major="Software Engineering",
         )
     )
-    token = await service.login(LoginRequest(email="mohammad@example.com", password="StrongPass123"))
+    token = await service.login(
+        LoginRequest(email="202012345@students.hebron.edu", password="StrongPass123")
+    )
 
-    assert user.email == "Mohammad@example.com"
+    assert str(user.email) == "202012345@students.hebron.edu"
     assert token.user.id == user.id
     assert token.access_token == f"token:{user.id}"
 
@@ -86,7 +89,7 @@ async def test_register_rejects_duplicate_email() -> None:
     service = AuthService(FakeUserRepository(), FakePasswordHasher(), FakeTokenIssuer())
     payload = RegisterUserRequest(
         full_name="Mohammad Qawas",
-        email="mohammad@example.com",
+        email="mohammad@hebron.edu",
         password="StrongPass123",
         confirm_password="StrongPass123",
     )
@@ -103,11 +106,28 @@ async def test_login_rejects_wrong_password() -> None:
     await service.register_user(
         RegisterUserRequest(
             full_name="Mohammad Qawas",
-            email="mohammad@example.com",
+            email="mohammad@hebron.edu",
             password="StrongPass123",
             confirm_password="StrongPass123",
         )
     )
 
     with pytest.raises(InvalidCredentialsError):
-        await service.login(LoginRequest(email="mohammad@example.com", password="wrong-password"))
+        await service.login(LoginRequest(email="mohammad@hebron.edu", password="wrong-password"))
+
+
+def test_signup_email_accepts_only_hebron_university_addresses() -> None:
+    assert is_allowed_hebron_email("202012345@STUDENTS.HEBRON.EDU")
+    assert is_allowed_hebron_email("teacher.name@HEBRON.EDU")
+    assert not is_allowed_hebron_email("student.name@students.hebron.edu")
+    assert not is_allowed_hebron_email("mohammad@example.com")
+
+
+def test_signup_rejects_non_hebron_email() -> None:
+    with pytest.raises(ValidationError):
+        RegisterUserRequest(
+            full_name="Mohammad Qawas",
+            email="mohammad@example.com",
+            password="StrongPass123",
+            confirm_password="StrongPass123",
+        )
