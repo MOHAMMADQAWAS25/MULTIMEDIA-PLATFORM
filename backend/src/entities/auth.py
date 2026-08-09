@@ -1,15 +1,28 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class RegisterUserRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=120)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    confirm_password: str = Field(min_length=8, max_length=128)
     department: str | None = Field(default=None, max_length=120)
     major: str | None = Field(default=None, max_length=120)
+
+    @model_validator(mode="after")
+    def validate_signup_password(self) -> "RegisterUserRequest":
+        if self.password != self.confirm_password:
+            raise ValueError("Password confirmation does not match.")
+        if not any(character.islower() for character in self.password):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        if not any(character.isupper() for character in self.password):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not any(character.isdigit() for character in self.password):
+            raise ValueError("Password must contain at least one number.")
+        return self
 
 
 class LoginRequest(BaseModel):

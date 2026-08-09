@@ -1,10 +1,12 @@
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.ports import UserRepository
 from src.entities.auth import RegisterUserRequest, UserRead
+from src.entities.exceptions import UserAlreadyExistsError
 from src.infrastructure.models.user import UserModel
 
 
@@ -38,7 +40,11 @@ class SqlAlchemyUserRepository(UserRepository):
             major=payload.major,
         )
         self.session.add(user)
-        await self.session.commit()
+        try:
+            await self.session.commit()
+        except IntegrityError as exc:
+            await self.session.rollback()
+            raise UserAlreadyExistsError("A user with this email already exists.") from exc
         await self.session.refresh(user)
         return self._to_read(user)
 

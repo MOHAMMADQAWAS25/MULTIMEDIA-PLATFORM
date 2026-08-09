@@ -15,6 +15,14 @@ async def register_user(
     return await auth_service.register_user(payload)
 
 
+@router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+async def sign_up(
+    payload: RegisterUserRequest,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> UserRead:
+    return await auth_service.register_user(payload)
+
+
 @router.post("/login", response_model=AuthToken)
 async def login(
     payload: LoginRequest,

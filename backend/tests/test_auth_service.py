@@ -69,6 +69,7 @@ async def test_register_and_login_user() -> None:
             full_name="Mohammad Qawas",
             email="Mohammad@example.com",
             password="StrongPass123",
+            confirm_password="StrongPass123",
             department="Information Technology",
             major="Software Engineering",
         )
@@ -87,6 +88,7 @@ async def test_register_rejects_duplicate_email() -> None:
         full_name="Mohammad Qawas",
         email="mohammad@example.com",
         password="StrongPass123",
+        confirm_password="StrongPass123",
     )
 
     await service.register_user(payload)
@@ -103,6 +105,7 @@ async def test_login_rejects_wrong_password() -> None:
             full_name="Mohammad Qawas",
             email="mohammad@example.com",
             password="StrongPass123",
+            confirm_password="StrongPass123",
         )
     )
 
