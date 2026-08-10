@@ -20,3 +20,18 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+### Python / FastAPI ###
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+inkfig.db
+.env
+
+### Frontend ###
+node_modules/
+dist/
